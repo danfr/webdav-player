@@ -14,6 +14,7 @@ class MainView : View() {
     private val webdavController: WebDavController by inject()
 
     private val elements = FXCollections.observableArrayList<DAVElement>()
+    private val pathLabel = SimpleStringProperty("Please enter credentials")
 
     private val model = object : ViewModel() {
         val url = bind { SimpleStringProperty() }
@@ -24,6 +25,14 @@ class MainView : View() {
     fun updateTable(daoElements: ArrayList<DAVElement>) {
         elements.clear()
         elements.addAll(daoElements)
+    }
+
+    fun updateCurrentPath(path: String) {
+        pathLabel.set(path)
+    }
+
+    fun loadingMessage() {
+        pathLabel.set("Loading...")
     }
 
     init {
@@ -70,7 +79,7 @@ class MainView : View() {
             }
             row {
                 vbox {
-                    label("Tableview from a map")
+                    label(pathLabel)
                     tableview(elements) {
                         readonlyColumn("Type", DAVElement::type)
                         readonlyColumn("File Name", DAVElement::filename)
@@ -78,6 +87,9 @@ class MainView : View() {
                         readonlyColumn("Size", DAVElement::filesize)
                         readonlyColumn("Last modified", DAVElement::lastUpdate)
                         columnResizePolicy = SmartResize.POLICY
+                        onUserSelect { element ->
+                            webdavController.loadElement(element)
+                        }
                     }
                 }
             }
