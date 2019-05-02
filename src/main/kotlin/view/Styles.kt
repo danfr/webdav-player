@@ -4,11 +4,11 @@ import tornadofx.*
 
 class Styles : Stylesheet() {
     companion object {
-        val loginForm by cssclass()
+        val fullWindow by cssclass()
     }
 
     init {
-        loginForm {
+        fullWindow {
             padding = box(15.px)
             vgap = 7.px
             hgap = 10.px

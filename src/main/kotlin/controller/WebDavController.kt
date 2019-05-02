@@ -1,13 +1,12 @@
 package controller
 
-import com.github.sardine.SardineFactory
+import controller.Utils.vlcSupportedExtensions
 import dto.DAVElement
 import dto.ElementType
 import tornadofx.*
 import view.MainView
 import java.net.URL
 import java.time.LocalDateTime
-import java.time.ZoneId
 
 
 class WebDavController : Controller() {
@@ -33,11 +32,11 @@ class WebDavController : Controller() {
             currentPassword = password
 
             // Get elements from server
-            val res = callWebDav(username, password, url)
+            val res = Utils.callWebDav(username, password, url)
 
             if (res.isNotEmpty()) {
                 // remove the current directory from list
-                val current = res.findLast { it.filepath.trimEnd('/', ' ') == currentUrl.path }
+                val current = res.findLast { it.filepath.trimEnd('/', ' ').toLowerCase() == currentUrl.path.toLowerCase() }
                 var lastUpdate = LocalDateTime.now()
 
                 current?.let {
@@ -57,38 +56,18 @@ class WebDavController : Controller() {
         }
     }
 
-    private fun callWebDav(username: String, password: String, url: String): ArrayList<DAVElement> {
-        val elements = ArrayList<DAVElement>()
-        val sardine = SardineFactory.begin()
-        sardine.setCredentials(username, password)
-        val resources = sardine.list(url)
-        resources.forEach { davResource ->
-            elements.add(DAVElement(
-                    davResource.name,
-                    davResource.href.toASCIIString(),
-                    davResource.contentLength,
-                    LocalDateTime.ofInstant(davResource.modified.toInstant(), ZoneId.systemDefault()),
-                    if (davResource.isDirectory) ElementType.DIRECTORY else ElementType.FILE)
-            )
-        }
-        return elements
-    }
-
     fun loadElement(element: DAVElement?) {
         var portSuffix = ""
         if (currentUrl.port != -1)
             portSuffix = ":" + currentUrl.port
 
-        val fullhost = "${currentUrl.protocol}://${currentUrl.host}$portSuffix"
-
         if (element?.type == ElementType.DIRECTORY) {
+            val fullhost = "${currentUrl.protocol}://${currentUrl.host}$portSuffix"
             tryGet(fullhost + element.filepath, currentUsername, currentPassword)
         } else if (element?.type == ElementType.FILE) {
-            openWithVLC(fullhost + element.filepath, currentUsername, currentPassword)
+            val extension = element.filename.substringAfterLast('.', "")
+            if (vlcSupportedExtensions.contains(extension.toLowerCase()))
+                Utils.openWithVLC(currentUrl.protocol, currentUrl.host, portSuffix, element.filepath, currentUsername, currentPassword)
         }
-    }
-
-    private fun openWithVLC(url: String, currentUsername: String, currentPassword: String) {
-
     }
 }
