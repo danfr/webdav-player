@@ -105,7 +105,8 @@ class MainView : View("WebDAV Player") {
                         onUserSelect { element ->
                             webdavController.loadElement(element)
                         }
-
+                        vgrow = Priority.ALWAYS
+                        hgrow = Priority.ALWAYS
                     }
                 }
             }
