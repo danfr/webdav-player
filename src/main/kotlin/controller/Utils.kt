@@ -19,8 +19,7 @@ object Utils {
 
     val properties by lazy {
         val res = Properties()
-        val classloader = Thread.currentThread().contextClassLoader
-        val propertiesIs = classloader.getResourceAsStream(propertyFilename)
+        val propertiesIs = File(propertyFilename).bufferedReader()
         propertiesIs.ifNull { throw ConfigurationException("Property file '$propertyFilename' not found !") }
         res.load(propertiesIs)
         res
